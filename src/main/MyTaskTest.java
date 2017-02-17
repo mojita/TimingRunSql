@@ -109,4 +109,29 @@ public class MyTaskTest extends TestCase {
         System.out.println(date1);
     }
 
+
+    @Test
+    public void testDelete(){
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet rs = null;
+
+        try {
+            connection = DBUtils.getConnection();
+            statement = connection.createStatement();
+            int count = statement.executeUpdate("delete from AI3_TASK where TASKID=20259");
+//            if(rs.next()){
+//                int count = rs.getInt(1);
+                System.out.println(count);
+//            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        DBUtils.release(rs,statement,connection);
+    }
+
+
+
+
 }

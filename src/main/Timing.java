@@ -14,7 +14,7 @@ import utils.Configration;
  */
 public class Timing {
 
-    private final long ADD_ONE_DAY = 24*60*60*1000;     //这里是时间的间隔时间
+    private final long ADD_ONE_DAY = 24*60*60*1000l;     //这里是时间的间隔时间
     private String time = Configration.time;
 
     private static Logger logger = Logger.getLogger(Timing.class);
@@ -43,9 +43,9 @@ public class Timing {
      */
     private void startTimer(int hour,int minute,int second) {
         Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY,23);
-        calendar.set(Calendar.MINUTE,28);
-        calendar.set(Calendar.SECOND,0);
+        calendar.set(Calendar.HOUR_OF_DAY,hour);
+        calendar.set(Calendar.MINUTE,minute);
+        calendar.set(Calendar.SECOND,second);
 
         Date date = calendar.getTime();
         //这里是判断是否在时间之后执行如果是,则增加天数,让其在下一天进行执行
