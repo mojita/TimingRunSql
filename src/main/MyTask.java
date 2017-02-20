@@ -34,15 +34,12 @@ public class MyTask extends TimerTask {
      */
     @Override
     public void run() {
-        System.out.println("进入run");
-        //TODO 增加日志
         String dateStr = timeToCalculate(System.currentTimeMillis());
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
         try {
             Date maxDate = simpleDateFormat.parse(dateStr);
             if(!StringUtil.isEmpty(dateStr)){
                 Date minDate = getMinRequestTime(dateStr);
-//                recursivelete(minDate,maxDate);
                 remove(minDate,maxDate);
             }
         } catch (ParseException e) {
@@ -65,8 +62,8 @@ public class MyTask extends TimerTask {
      * @param minDate 当前系统时间三天前最小的时间
      * @param maxDate 当前系统时间三天前最大的时间
      */
+    @Deprecated
     public void recursiveDelete(Date minDate,Date maxDate){
-        System.out.println("进入recur");
         Map<String,Integer> taskIdMap = null;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
         ///date为当前再早的时间,每次递归增加一个小时
@@ -75,14 +72,11 @@ public class MyTask extends TimerTask {
             String dateStr = simpleDateFormat.format(new Date(addOneHour));
             taskIdMap = getTaskIdByDateLimit(dateStr);
             deleteByMinTaskIdAndMaxTaskId(taskIdMap);
-            System.out.println("进入递归------------------------");
             recursiveDelete(new Date(addOneHour),maxDate);
         }else {
             String dateStr = simpleDateFormat.format(maxDate);
             taskIdMap = getTaskIdByDateLimit(dateStr);
             deleteByMinTaskIdAndMaxTaskId(taskIdMap);
-            //TODO 测试
-            System.out.println("递归结束");
             if(logger.isInfoEnabled()) logger.info("删除任务结束");
         }
     }
@@ -96,9 +90,11 @@ public class MyTask extends TimerTask {
         Map<String,Integer> taskIdMap = null;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
         ///date为当前再早的时间,每次递归增加一个小时
-        long addOneHour = 0l;
+
+
+        long addOneHour = minDate.getTime();
         while (true){
-            addOneHour += addOneHour+ONE_HOUR;
+            addOneHour = addOneHour+ONE_HOUR;
             if(addOneHour<maxDate.getTime()){
                 String dateStr = simpleDateFormat.format(new Date(addOneHour));
                 taskIdMap = getTaskIdByDateLimit(dateStr);
@@ -125,13 +121,15 @@ public class MyTask extends TimerTask {
      * @return
      */
     public Date getMinRequestTime(String newDateBeforThreeDay) {
-        System.out.println("进入minreuq");
         Connection connection = null;
         Statement statement = null;
         ResultSet rs = null;
         Date date = null;
-//        String sql = "select min(requesttime)  from ai3_task t where t.requesttime<to_date('"+newDateBeforThreeDay+"','yyyy-mm-dd hh24:mi:ss')";
-        String sql = "select min(requesttime)  from ai3_task t where t.requesttime<str_to_date('"+newDateBeforThreeDay+"','%Y-%m-%d %T')";
+        //上面这个是针对oracle的
+        String sql = "select min(requesttime)  from ai3_task t where t.requesttime<to_date('"+newDateBeforThreeDay+"','yyyy-mm-dd hh24:mi:ss')";
+
+        //下面这条是针对mysql的
+//        String sql = "select min(requesttime)  from ai3_task t where t.requesttime<str_to_date('"+newDateBeforThreeDay+"','%Y-%m-%d %T')";
         try {
             connection = DBUtils.getConnection();
             statement = connection.createStatement();
@@ -140,13 +138,14 @@ public class MyTask extends TimerTask {
                 String dateStr = rs.getString(1);
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
                 date = simpleDateFormat.parse(dateStr);
-                //TODO 测试
                 System.out.println("获取到时间:"+dateStr);
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            logger.error(e);
         } catch (ParseException e) {
             e.printStackTrace();
+            logger.error(e);
         } finally {
             DBUtils.release(rs, statement, connection);
             if (logger.isInfoEnabled()) logger.info("[" + sql + "]sql执行完成");
@@ -161,13 +160,15 @@ public class MyTask extends TimerTask {
      * @return
      */
     public Map<String,Integer> getTaskIdByDateLimit(String dateStr){
-        System.out.println("进入gettask");
         Connection connection = null;
         Statement statement = null;
         ResultSet rs = null;
         Map<String,Integer> taskIdMap = null;
-//        String sql = "select min(taskid),max(taskid) from ai3_task t where t.requesttime<to_date('"+dateStr+"','yyyy-mm-dd hh24:mi:ss')";
-        String sql = "select min(taskid),max(taskid) from ai3_task t where t.requesttime<str_to_date('"+dateStr+"','%Y-%m-%d %T')";
+        //这条是针对oracle的
+        String sql = "select min(taskid),max(taskid) from ai3_task t where t.requesttime<to_date('"+dateStr+"','yyyy-mm-dd hh24:mi:ss')";
+
+        //下面这条是支持mysql的
+//        String sql = "select min(taskid),max(taskid) from ai3_task t where t.requesttime<str_to_date('"+dateStr+"','%Y-%m-%d %T')";
         try {
             connection = DBUtils.getConnection();
             statement = connection.createStatement();
@@ -177,12 +178,8 @@ public class MyTask extends TimerTask {
                 int maxTaskId = rs.getInt(2);
                 if(minTaskId<maxTaskId&&minTaskId!=0&&maxTaskId!=0){
                     taskIdMap = new HashMap<>();
-                    //TODO 测试
-                    System.out.println("mintaskId:"+minTaskId);
-                    System.out.println("maxtaskId"+maxTaskId);
                     taskIdMap.put("minTaskId",minTaskId);
                     taskIdMap.put("maxTaskId",maxTaskId);
-                    if(logger.isInfoEnabled()) logger.info("");
                 }
             }
 
@@ -205,7 +202,6 @@ public class MyTask extends TimerTask {
      * @param taskIdMap minTaskId maxTaskId
      */
     public void deleteByMinTaskIdAndMaxTaskId(Map<String,Integer> taskIdMap){
-        System.out.println("进入dele");
         Connection connection = null;
         Statement statement = null;
         ResultSet rs = null;
@@ -214,7 +210,6 @@ public class MyTask extends TimerTask {
 
             String minTaskId = String.valueOf(taskIdMap.get("minTaskId"));
             String maxTaskId = String.valueOf(taskIdMap.get("maxTaskId"));
-            //TODO 增加日志
             String deleteAi3Tasklob_sql = "delete from ai3_tasklob where taskid>="+minTaskId+" and taskid<="+maxTaskId;
             String countAI3Tasklob_sql = "select count(*) from ai3_tasklob where taskid>="+minTaskId+" and taskid<="+maxTaskId;
             String deleteAi3Task_sql = "delete from ai3_task where taskid>="+minTaskId+" and taskid<="+maxTaskId;
@@ -225,28 +220,32 @@ public class MyTask extends TimerTask {
                 connection = DBUtils.getConnection();
                 statement = connection.createStatement();
 
-
+                //查询AI3_tasklob两个taskId之间的总数
                 rs = statement.executeQuery(countAI3Tasklob_sql);
                 if(rs.next())
                     countQuery = rs.getInt(1);
+                if(logger.isInfoEnabled()) logger.info("查询AI3_tasklob表["+minTaskId+"到"+maxTaskId+"]之间的数据,共"+countQuery+"条");
+
+                //删除Ai3_task两个taskId之间的数据
                 countDelete = statement.executeUpdate(deleteAi3Tasklob_sql);
-                //TODO 测试
-                System.out.println("执行了删除操作tasklob");
+
+
                 if(logger.isInfoEnabled()) logger.info("删除AI3_tasklob表["+minTaskId+"到"+maxTaskId+"]之间的数据,共"+countDelete+"条");
 
-                if(countQuery>countDelete&&logger.isInfoEnabled())
-                    logger.warn("[AI3_tasklob]表,查询出的总条数为["+countQuery+"]"+"删除的条数为["+countDelete+"]");
 
-
+                //查询AI3_task两个taskId之间的总数
                 rs = statement.executeQuery(countAI3_Task_sql);
                 if(rs.next())
                     countQuery = rs.getInt(1);
+
+                if(logger.isInfoEnabled()) logger.info("查询AI3_task表["+minTaskId+"到"+maxTaskId+"]之间的数据,共"+countQuery+"条");
+
+                //删除AI3_task两个taskId之间的数据
                 countDelete = statement.executeUpdate(deleteAi3Task_sql);
-                System.out.println("执行了删除操作task表");
+
                 if(logger.isInfoEnabled()) logger.info("删除AI3_task表taskID["+minTaskId+"到"+maxTaskId+"]之间的数据,共"+countDelete+"条");
 
-                if(countQuery>countDelete&&logger.isInfoEnabled())
-                    logger.warn("[AI3_task]表,查询出的总条数为["+countQuery+"]"+"删除的条数为["+countDelete+"]");
+
 
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -264,12 +263,10 @@ public class MyTask extends TimerTask {
      * @return
      */
     public String timeToCalculate(long newTime){
-        System.out.println("进入timeto");
         long newTimeBeforThreeTime = newTime-THREE_DAY;
         Date beforThreeDay = new Date(newTimeBeforThreeTime);
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT);
         String dateStr = simpleDateFormat.format(beforThreeDay);
-        System.out.println(dateStr);
         return dateStr;
     }
 

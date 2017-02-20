@@ -70,7 +70,7 @@ public class Timing {
     public Date addOneDayDate(Date date,int num){
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
-        calendar.set(Calendar.DAY_OF_MONTH,num);
+        calendar.set(Calendar.DAY_OF_MONTH,calendar.get(Calendar.DAY_OF_MONTH)+num);
         return calendar.getTime();
     }
 
