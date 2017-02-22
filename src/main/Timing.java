@@ -14,7 +14,7 @@ import utils.Configration;
  */
 public class Timing {
 
-    private final long ADD_ONE_DAY = 24*60*60*1000l;     //这里是时间的间隔时间
+    private final long ADD_ONE_DAY = 24*60*60*1000L;     //这里是时间的间隔时间
     private String time = Configration.time;
 
     private static Logger logger = Logger.getLogger(Timing.class);
@@ -51,6 +51,7 @@ public class Timing {
         //这里是判断是否在时间之后执行如果是,则增加天数,让其在下一天进行执行
         if(date.before(new Date())){
             date = this.addOneDayDate(date,1);
+            if(logger.isInfoEnabled()) logger.info("程序将在当前时间后一天的指定时间开始执行");
         }
 
         //时间定时执行器

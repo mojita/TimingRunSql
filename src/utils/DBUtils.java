@@ -2,16 +2,19 @@ package utils;
 
 import java.sql.*;
 
+import org.apache.log4j.Logger;
+
 /**
  * Created by lijunhong on 17/2/15.
  */
 public class DBUtils {
-
+    private final static Logger logger = Logger.getLogger(DBUtils.class);
     static {
         try {
             Class.forName(Configration.className);
         }catch (ClassNotFoundException e) {
             e.printStackTrace();
+            logger.error("数据库驱动读取失败"+e);
         }
     }
 

@@ -39,16 +39,13 @@ public class Configration {
             className = properties.getProperty("className");
             logsPath = properties.getProperty("logsPath");
             System.out.println(user);
-            System.out.println(password);
+//            System.out.println(password);
             System.out.println(url);
             System.out.println(time);
-            System.out.println(sql);
+//            System.out.println(sql);
             System.out.println(logsPath);
 
-
-            isCreateLogFile();
-
-
+//            isCreateLogFile();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -56,6 +53,11 @@ public class Configration {
 
     }
 
+    /**
+     * 判断是否创建日志文件,现在这个方法暂时弃用
+     * @throws IOException
+     */
+    @Deprecated
     private static void isCreateLogFile() throws IOException {
         File file = null;
 
@@ -69,7 +71,6 @@ public class Configration {
         if(!file.exists()){
             file.createNewFile();
         }
-
 
     }
 
